@@ -487,7 +487,7 @@ export default function Settings() {
                         onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
                         className="p-2 rounded-lg hover:bg-white hover:bg-opacity-10 transition-colors text-white"
                     >
-                        <svg className={`w-5 h-5 text-gray-600 transition-transform ${sidebarCollapsed ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className={`w-5 h-5 transition-transform ${sidebarCollapsed ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"></path>
                         </svg>
                     </button>
@@ -503,7 +503,7 @@ export default function Settings() {
                                     key={item.id}
                                     onClick={() => handleNavigation(item.path)}
                                     className={`w-full flex items-center px-3 py-3 text-sm font-medium rounded-lg transition-all duration-200 ${isActive
-                                        ? 'bg-blue-50 text-blue-700 border-r-4 border-blue-700'
+                                        ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-md'
                                         : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                                         }`}
                                     title={sidebarCollapsed ? item.title : ''}
@@ -515,7 +515,7 @@ export default function Settings() {
                                         <>
                                             <span className="ml-3 flex-1 text-left">{item.title}</span>
                                             {item.badge && (
-                                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${item.badgeColor || 'bg-blue-100 text-blue-800'
+                                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${isActive ? 'bg-white/20 text-white' : (item.badgeColor || 'bg-blue-100 text-blue-800')
                                                     }`}>
                                                     {item.badge}
                                                 </span>

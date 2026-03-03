@@ -218,9 +218,9 @@ export function Sidebar({ sidebarCollapsed, setSidebarCollapsed, currentPath, st
                             <button
                                 key={item.id}
                                 onClick={() => handleNavigation(item.path)}
-                                className={`w-full flex items-center px-3 py-3 text-sm font-medium rounded-xl transition-all duration-200 ${isActive
-                                    ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg'
-                                    : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                                className={`w-full flex items-center px-3 py-3 text-sm font-medium rounded-lg transition-all duration-200 ${isActive
+                                    ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-md'
+                                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                                     }`}
                                 title={sidebarCollapsed ? item.title : ''}
                             >
@@ -228,12 +228,19 @@ export function Sidebar({ sidebarCollapsed, setSidebarCollapsed, currentPath, st
                                     {item.icon}
                                 </div>
                                 {!sidebarCollapsed && (
-                                    <span className="ml-3 flex-1 text-left">{item.title}</span>
+                                    <>
+                                        <span className="ml-3 flex-1 text-left">{item.title}</span>
+                                        {item.badge && (
+                                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${isActive ? 'bg-white/20 text-white' : (item.badgeColor || 'bg-blue-100 text-blue-800')
+                                                }`}>
+                                                {item.badge}
+                                            </span>
+                                        )}
+                                    </>
                                 )}
-                                {!sidebarCollapsed && item.badge && (
-                                    <span className="ml-2 bg-blue-100 text-blue-600 text-xs font-medium px-2 py-1 rounded-full">
-                                        {item.badge}
-                                    </span>
+                                {sidebarCollapsed && item.badge && (
+                                    <span className={`absolute left-8 top-2 w-2 h-2 rounded-full ${item.badgeColor || 'bg-blue-500'
+                                        }`}></span>
                                 )}
                             </button>
                         )

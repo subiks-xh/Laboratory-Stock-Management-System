@@ -1,8 +1,58 @@
 // utils/sessionManager.js - Shared Session Management
 const crypto = require('crypto');
+const fs = require('fs');
+const path = require('path');
 
 // Session Storage (In production, use Redis or database)
 const sessionStore = new Map();
+
+// Persistent session file path
+const SESSION_FILE = path.join(__dirname, '..', '.sessions.json');
+
+// Load sessions from file on startup
+const loadSessionsFromFile = () => {
+    try {
+        if (fs.existsSync(SESSION_FILE)) {
+            const data = fs.readFileSync(SESSION_FILE, 'utf8');
+            const sessions = JSON.parse(data);
+            
+            // Convert date strings back to Date objects and load valid sessions
+            let loadedCount = 0;
+            const now = new Date();
+            
+            for (const [sessionId, session] of Object.entries(sessions)) {
+                session.createdAt = new Date(session.createdAt);
+                session.expiresAt = new Date(session.expiresAt);
+                
+                // Only load non-expired sessions
+                if (now < session.expiresAt) {
+                    sessionStore.set(sessionId, session);
+                    loadedCount++;
+                }
+            }
+            
+            console.log(`✅ Loaded ${loadedCount} valid sessions from file`);
+        }
+    } catch (error) {
+        console.error('⚠️ Error loading sessions from file:', error.message);
+    }
+};
+
+// Save sessions to file
+const saveSessionsToFile = () => {
+    try {
+        const sessions = {};
+        for (const [sessionId, session] of sessionStore.entries()) {
+            sessions[sessionId] = session;
+        }
+        fs.writeFileSync(SESSION_FILE, JSON.stringify(sessions, null, 2), 'utf8');
+    } catch (error) {
+        console.error('⚠️ Error saving sessions to file:', error.message);
+    }
+};
+
+// Load sessions on module initialization
+loadSessionsFromFile();
 
 // Generate session ID for cookie-based authentication
 const generateSessionId = () => {
@@ -24,6 +74,9 @@ const createSession = (user) => {
     
     // Clean up expired sessions periodically
     cleanExpiredSessions();
+    
+    // Persist to file
+    saveSessionsToFile();
     
     return sessionId;
 };
@@ -58,6 +111,8 @@ const getSession = (sessionId) => {
 const deleteSession = (sessionId) => {
     if (sessionId) {
         sessionStore.delete(sessionId);
+        // Persist to file
+        saveSessionsToFile();
     }
 };
 

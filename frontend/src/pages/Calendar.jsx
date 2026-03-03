@@ -749,24 +749,26 @@ export default function Calendar() {
             {/* Sidebar */}
             <div className={`fixed inset-y-0 left-0 z-50 ${sidebarCollapsed ? 'w-16' : 'w-64'} bg-white shadow-lg border-r border-gray-200 transition-all duration-300`}>
                 {/* Sidebar Header */}
-                <div className="flex items-center justify-between h-16 px-4 border-b border-gray-200">
+                <div className="flex items-center justify-between h-16 px-4 border-b border-gray-200 bg-gradient-to-r from-blue-600 to-purple-600">
                     {!sidebarCollapsed && (
                         <div className="flex items-center space-x-3">
-                            <img 
-                                src="/nec-logo.png" 
-                                alt="NEC Logo" 
-                                className="w-8 h-8 object-contain rounded-lg"
-                            />
-                            <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                            <div className="w-8 h-8 bg-white rounded-lg overflow-hidden p-1">
+                                <img 
+                                    src="/nec-logo.png" 
+                                    alt="NEC Logo" 
+                                    className="w-full h-full object-contain"
+                                />
+                            </div>
+                            <h1 className="text-xl font-bold text-white">
                                 NEC LabMS
                             </h1>
                         </div>
                     )}
                     <button
                         onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-                        className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                        className="p-2 rounded-lg hover:bg-white hover:bg-opacity-10 transition-colors text-white"
                     >
-                        <svg className={`w-5 h-5 text-gray-600 transition-transform ${sidebarCollapsed ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className={`w-5 h-5 transition-transform ${sidebarCollapsed ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"></path>
                         </svg>
                     </button>
@@ -783,7 +785,7 @@ export default function Calendar() {
                                     onClick={() => handleNavigation(item.path)}
                                     className={`w-full flex items-center px-3 py-3 text-sm font-medium rounded-lg transition-all duration-200 ${
                                         isActive
-                                            ? 'bg-blue-50 text-blue-700 border-r-4 border-blue-700'
+                                            ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-md'
                                             : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                                     }`}
                                     title={sidebarCollapsed ? item.title : ''}
@@ -796,7 +798,7 @@ export default function Calendar() {
                                             <span className="ml-3 flex-1 text-left">{item.title}</span>
                                             {item.badge && (
                                                 <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                                                    item.badgeColor || 'bg-blue-100 text-blue-800'
+                                                    isActive ? 'bg-white/20 text-white' : (item.badgeColor || 'bg-blue-100 text-blue-800')
                                                 }`}>
                                                     {item.badge}
                                                 </span>

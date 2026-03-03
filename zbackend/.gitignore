@@ -5,6 +5,9 @@
 .env.*.local
 .env.railway.local
 
+# Session storage
+.sessions.json
+
 # Dependencies
 node_modules/
 
