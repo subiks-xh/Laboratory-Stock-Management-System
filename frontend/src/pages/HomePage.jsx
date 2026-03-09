@@ -641,7 +641,7 @@ const HomePage = () => {
                             <h4 className="text-lg font-semibold mb-4 text-white">For Technical Support</h4>
                             <div className="text-gray-300 space-y-2">
                                 <p className="font-medium">Dr. S.Kalaiselvi M.E.,Ph.D</p>
-                                <p>Professor / Computer Engineering</p>
+                                <p>Associate Professor/Computer Science And Engineering</p>
                                 <p className="flex items-center">
                                     <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 002 2v10a2 2 0 002 2z" />
@@ -743,7 +743,7 @@ const HomePage = () => {
                     {/* Bottom Copyright */}
                     <div className="border-t border-gray-700 mt-8 pt-6 text-center">
                         <p className="text-blue-400 font-medium">NEC LabMS</p>
-                        <p className="text-gray-400 text-sm mt-1">&copy; 2024 National Engineering College Lab Management System. All rights reserved.</p>
+                        <p className="text-gray-400 text-sm mt-1">&copy; 2026 National Engineering College Lab Management System. All rights reserved.</p>
                     </div>
                 </div>
             </footer>

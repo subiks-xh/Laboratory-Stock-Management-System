@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { AuthProvider } from './contexts/AuthContext'
 import { ProtectedRoute, AuthRedirect } from './components/common/ProtectedRoute'
 import ErrorBoundary from './components/ErrorBoundary'
@@ -25,6 +25,12 @@ import './index.css'
 import Chatbot from './components/Chatbot'
 
 function AppContent() {
+  const location = useLocation();
+  
+  // Hide chatbot on home, login, and signup pages
+  const hideChatbotPages = ['/', '/login', '/register'];
+  const shouldShowChatbot = !hideChatbotPages.includes(location.pathname);
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Routes>
@@ -193,8 +199,8 @@ function AppContent() {
         />
       </Routes>
 
-      {/* CHATBOT - Available on all authenticated pages */}
-      <Chatbot />
+      {/* CHATBOT - Available on all authenticated pages, hidden on home/login/register */}
+      {shouldShowChatbot && <Chatbot />}
     </div>
   );
 }
