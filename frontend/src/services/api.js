@@ -324,6 +324,66 @@ export const labsAPI = {
     },
 };
 
+// ✅ ADDED: Roles API
+export const rolesAPI = {
+    getAll: async (params = {}) => {
+        const queryString = new URLSearchParams(params).toString();
+        const response = await apiCall(`/roles${queryString ? '?' + queryString : ''}`);
+        return response.data || response;
+    },
+
+    getById: (id) => apiCall(`/roles/${id}`),
+
+    create: (data) => apiCall('/roles', {
+        method: 'POST',
+        body: JSON.stringify(data),
+    }),
+
+    update: (id, data) => apiCall(`/roles/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(data),
+    }),
+
+    delete: (id) => apiCall(`/roles/${id}`, {
+        method: 'DELETE',
+    }),
+
+    getStats: async () => {
+        const response = await apiCall('/roles/stats');
+        return response.data || response;
+    },
+};
+
+// ✅ ADDED: Departments API
+export const departmentsAPI = {
+    getAll: async (params = {}) => {
+        const queryString = new URLSearchParams(params).toString();
+        const response = await apiCall(`/departments${queryString ? '?' + queryString : ''}`);
+        return response.data || response;
+    },
+
+    getById: (id) => apiCall(`/departments/${id}`),
+
+    create: (data) => apiCall('/departments', {
+        method: 'POST',
+        body: JSON.stringify(data),
+    }),
+
+    update: (id, data) => apiCall(`/departments/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(data),
+    }),
+
+    delete: (id) => apiCall(`/departments/${id}`, {
+        method: 'DELETE',
+    }),
+
+    getStats: async (companyId = 0) => {
+        const response = await apiCall(`/departments/stats?companyId=${companyId}`);
+        return response.data || response;
+    },
+};
+
 // Keep the rest of your existing APIs...
 export const maintenanceAPI = {
     getAll: (params = {}) => {
@@ -515,7 +575,9 @@ export default {
     auth: authAPI,
     equipment: equipmentAPI,
     bookings: bookingsAPI,
-    labs: labsAPI, // ✅ ADDED
+    labs: labsAPI,
+    roles: rolesAPI,
+    departments: departmentsAPI,
     maintenance: maintenanceAPI,
     reports: reportsAPI,
     orders: ordersAPI,

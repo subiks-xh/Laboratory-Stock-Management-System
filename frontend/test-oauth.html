@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>OAuth Test</title>
+</head>
+<body>
+    <h1>OAuth Debug Test</h1>
+    <button id="testBtn" style="padding: 10px 20px; font-size: 16px;">Test Google OAuth</button>
+    <pre id="output" style="margin-top: 20px; padding: 10px; background: #f0f0f0;"></pre>
+
+    <script>
+        const output = document.getElementById('output');
+        
+        function log(msg) {
+            output.textContent += msg + '\n';
+            console.log(msg);
+        }
+
+        document.getElementById('testBtn').addEventListener('click', async () => {
+            output.textContent = '';
+            
+            try {
+                log('1. Testing OAuth endpoint via Vite proxy...');
+                
+                const response = await fetch('/api/auth/oauth/google', {
+                    method: 'GET',
+                    credentials: 'include',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    }
+                });
+                
+                log('2. Response status: ' + response.status);
+                log('3. Response OK: ' + response.ok);
+                
+                const data = await response.json();
+                log('4. Response data: ' + JSON.stringify(data, null, 2));
+                
+                if (data.success && data.authUrl) {
+                    log('✅ Got OAuth URL!');
+                    log('5. Redirecting to Google in 2 seconds...');
+                    
+                    setTimeout(() => {
+                        window.location.href = data.authUrl;
+                    }, 2000);
+                } else {
+                    log('❌ No authUrl received');
+                }
+                
+            } catch (error) {
+                log('❌ Error: ' + error.message);
+                log('Stack: ' + error.stack);
+            }
+        });
+        
+        log('Ready! Click the button to test OAuth.');
+    </script>
+</body>
+</html>

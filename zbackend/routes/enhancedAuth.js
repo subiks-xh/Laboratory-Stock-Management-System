@@ -899,29 +899,16 @@ router.get('/oauth/google/callback', async (req, res) => {
         console.log('📊 OAuth processing result:', { success: result.success, hasUser: !!result.data?.user });
 
         if (result.success && result.data?.user) {
-            // Create session for OAuth user
-            const sessionId = createSession(result.data.user);
+            // DON'T set cookie here - let frontend establish session through proxy
+            // This ensures cookie is set on the correct domain (localhost:5173)
             
-            console.log('🍪 Setting session cookie:', { 
-                sessionId: sessionId.substring(0, 10) + '...', 
+            console.log('✅ OAuth successful for user:', {
                 userId: result.data.user.id,
                 email: result.data.user.email
             });
             
-            // Set HTTP-only cookie with session ID
-            // Use domain: undefined to allow cross-port cookies on localhost
-            res.cookie('sessionId', sessionId, {
-                httpOnly: true,
-                secure: false, // false for localhost development
-                sameSite: 'lax',
-                path: '/',
-                domain: undefined, // Don't set domain to allow cross-port on localhost
-                maxAge: 24 * 60 * 60 * 1000 // 24 hours
-            });
-            
-            console.log('🔄 Session cookie set, redirecting to frontend');
-            
-            // Redirect to frontend with user data in URL (temporary, will be removed by frontend)
+            // Redirect to frontend with user data in URL
+            // Frontend will call establish-session endpoint to create session cookie
             const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
             const userData = encodeURIComponent(JSON.stringify({
                 id: result.data.user.id,
@@ -934,7 +921,7 @@ router.get('/oauth/google/callback', async (req, res) => {
                 position: result.data.user.position
             }));
             const redirectUrl = `${clientUrl}/oauth/success?user=${userData}`;
-            console.log('✅ OAuth successful, redirecting to:', redirectUrl.substring(0, 100) + '...');
+            console.log('🔄 Redirecting to frontend:', redirectUrl.substring(0, 100) + '...');
             res.redirect(redirectUrl);
         } else {
             console.error('❌ OAuth processing failed:', result.message);
@@ -964,25 +951,16 @@ router.get('/oauth/github/callback', async (req, res) => {
         const result = await OAuthService.processGitHubOAuth(code);
 
         if (result.success && result.data?.user) {
-            // Create session for OAuth user  
-            const sessionId = createSession(result.data.user);
+            // DON'T set cookie here - let frontend establish session through proxy
+            // This ensures cookie is set on the correct domain (localhost:5173)
             
-            console.log('🍪 Setting session cookie for GitHub user:', { 
-                sessionId: sessionId.substring(0, 10) + '...', 
+            console.log('✅ GitHub OAuth successful for user:', {
                 userId: result.data.user.id,
                 email: result.data.user.email
             });
             
-            // Set HTTP-only cookie with session ID
-            res.cookie('sessionId', sessionId, {
-                httpOnly: true,
-                secure: false, // Set to false for localhost development
-                sameSite: 'lax',
-                path: '/',
-                maxAge: 24 * 60 * 60 * 1000 // 24 hours
-            });
-            
             // Redirect to frontend with user data in URL
+            // Frontend will call establish-session endpoint to create session cookie
             const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
             const userData = encodeURIComponent(JSON.stringify({
                 id: result.data.user.id,
@@ -995,6 +973,7 @@ router.get('/oauth/github/callback', async (req, res) => {
                 position: result.data.user.position
             }));
             const redirectUrl = `${clientUrl}/oauth/success?user=${userData}`;
+            console.log('🔄 Redirecting to frontend:', redirectUrl.substring(0, 100) + '...');
             res.redirect(redirectUrl);
         } else {
             res.redirect(`${process.env.CLIENT_URL || 'http://localhost:5173'}/login?error=${encodeURIComponent(result.message)}`);
@@ -1033,8 +1012,18 @@ router.post('/login', loginEmailValidation, async (req, res) => {
             });
         }
 
-        // Verify password
-        const isPasswordValid = await bcrypt.compare(password, user.password);
+        // Verify password - handle both plain text and hashed passwords
+        let isPasswordValid = false;
+        if (user.password) {
+            // Try bcrypt first (for hashed passwords)
+            try {
+                isPasswordValid = await bcrypt.compare(password, user.password);
+            } catch (error) {
+                // If bcrypt fails, try plain text comparison (for existing users)
+                isPasswordValid = password === user.password;
+            }
+        }
+        
         if (!isPasswordValid) {
             return res.status(400).json({
                 success: false,

@@ -1,4 +1,4 @@
-// models/index.js - CRITICAL ASSOCIATIONS FIX
+// models/index.js - Model Associations (Compatible with current database schema)
 const { sequelize } = require('../config/database');
 
 // Import all models
@@ -16,6 +16,16 @@ const Incident = require('./Incident');
 const Training = require('./Training');
 const TrainingCertification = require('./TrainingCertification');
 const RecentlyAccessed = require('./RecentlyAccessed');
+
+// Note: Role and Department models are prepared for future RBAC migration
+// but are NOT loaded until the database migration is executed
+// const Role = require('./Role');
+// const Department = require('./Department');
+
+// ============= ASSOCIATIONS USING CURRENT DATABASE SCHEMA =============
+// The current database uses:
+// - Users table with columns: id, name, email, role (ENUM), department (STRING)
+// - NO roleId or departmentId foreign keys yet
 
 // ============= USER ASSOCIATIONS =============
 
@@ -316,4 +326,8 @@ module.exports = {
     Training,
     TrainingCertification,
     RecentlyAccessed,
+    // Role and Department models are prepared but not exported
+    // until the RBAC migration is executed
+    // Role,
+    // Department,
 };

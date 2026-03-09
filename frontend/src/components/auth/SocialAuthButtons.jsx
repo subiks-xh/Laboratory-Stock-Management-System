@@ -4,29 +4,46 @@ import { loginWithGoogle, loginWithGitHub } from '../../services/authService'
 
 function SocialAuthButtons({ disabled = false, className = "" }) {
     const [loadingProvider, setLoadingProvider] = useState(null)
+    const [error, setError] = useState(null)
 
     const handleGoogleLogin = async () => {
         try {
+            console.log('🔵 Google login button clicked');
             setLoadingProvider('google')
+            setError(null)
             await loginWithGoogle()
         } catch (error) {
-            console.error('Google login error:', error)
+            console.error('❌ Google login error:', error)
+            setError(`Google login failed: ${error.message}`)
             setLoadingProvider(null)
+            // Show alert for debugging
+            alert(`Google OAuth Error: ${error.message}\n\nCheck browser console for details.`);
         }
     }
 
     const handleGitHubLogin = async () => {
         try {
+            console.log('🔵 GitHub login button clicked');
             setLoadingProvider('github')
+            setError(null)
             await loginWithGitHub()
         } catch (error) {
-            console.error('GitHub login error:', error)
+            console.error('❌ GitHub login error:', error)
+            setError(`GitHub login failed: ${error.message}`)
             setLoadingProvider(null)
+            alert(`GitHub OAuth Error: ${error.message}\n\nCheck browser console for details.`);
         }
     }
 
     return (
         <div className={`space-y-3 ${className}`}>
+            {/* Error Message */}
+            {error && (
+                <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+                    {error}
+                </div>
+            )}
+            
             {/* Google Login Button */}
             <button
                 onClick={handleGoogleLogin}

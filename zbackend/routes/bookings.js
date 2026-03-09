@@ -97,14 +97,6 @@ router.get('/:id', trackAccess, async (req, res) => {
     try {
         const booking = await bookingService.getBookingById(req.params.id);
         
-        // Check access permissions
-        if (req.user.role === 'student' && booking.user_id !== req.user.userId) {
-            return res.status(403).json({
-                success: false,
-                message: 'You do not have permission to view this booking'
-            });
-        }
-        
         res.json({
             success: true,
             data: booking
@@ -125,9 +117,15 @@ router.get('/:id', trackAccess, async (req, res) => {
     }
 });
 
-// POST create new booking
+// POST create new booking (students cannot create bookings)
 router.post('/', async (req, res) => {
     try {
+        if (req.user.role === 'student') {
+            return res.status(403).json({
+                success: false,
+                message: 'Students are not allowed to create bookings'
+            });
+        }
         const booking = await bookingService.createBooking(req.body, req.user.userId);
         res.status(201).json({
             success: true,
@@ -150,18 +148,16 @@ router.post('/', async (req, res) => {
     }
 });
 
-// PUT update booking
+// PUT update booking (students not allowed)
 router.put('/:id', async (req, res) => {
     try {
-        const booking = await bookingService.getBookingById(req.params.id);
-        
-        // Check access permissions
-        if (req.user.role === 'student' && booking.user_id !== req.user.userId) {
+        if (req.user.role === 'student') {
             return res.status(403).json({
                 success: false,
-                message: 'You do not have permission to update this booking'
+                message: 'Students are not allowed to update bookings'
             });
         }
+        const booking = await bookingService.getBookingById(req.params.id);
         
         const updatedBooking = await bookingService.updateBooking(req.params.id, req.body);
         res.json({
@@ -191,18 +187,16 @@ router.put('/:id', async (req, res) => {
     }
 });
 
-// DELETE booking
+// DELETE booking (students not allowed)
 router.delete('/:id', async (req, res) => {
     try {
-        const booking = await bookingService.getBookingById(req.params.id);
-        
-        // Check access permissions
-        if (req.user.role === 'student' && booking.user_id !== req.user.userId) {
+        if (req.user.role === 'student') {
             return res.status(403).json({
                 success: false,
-                message: 'You do not have permission to delete this booking'
+                message: 'Students are not allowed to delete bookings'
             });
         }
+        const booking = await bookingService.getBookingById(req.params.id);
         
         await bookingService.deleteBooking(req.params.id);
         res.json({

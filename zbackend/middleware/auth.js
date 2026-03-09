@@ -35,19 +35,24 @@ const authenticateToken = async (req, res, next) => {
         console.log('✅ Session verified for user:', session.email);
 
         // Get user from database to ensure they still exist and are active
+        // ONLY use existing database columns (before migration)
         const user = await User.findByPk(session.userId, {
-            attributes: ['id', 'name', 'email', 'role', 'is_active']
+            attributes: [
+                'id', 'name', 'email', 'role', 'is_active', 
+                'department', 'phone', 'position', 'student_id', 
+                'avatar_url', 'is_email_verified'
+            ]
         });
 
         if (!user) {
             console.log('❌ User not found in database:', session.userId);
-            // Session cleanup is handled by sessionManager
             return res.status(401).json({
                 success: false,
                 message: 'Access denied. User not found.'
             });
         }
 
+        // Check if user is active
         if (!user.is_active) {
             console.log('❌ User account is inactive:', user.email);
             return res.status(401).json({
@@ -56,13 +61,20 @@ const authenticateToken = async (req, res, next) => {
             });
         }
 
-        // Set user object for routes
+        // Set user object for routes with existing database fields only
         req.user = {
-            userId: user.id,
             id: user.id,
+            userId: user.id, // Alias for compatibility
             email: user.email,
             role: user.role,
-            name: user.name
+            name: user.name,
+            is_active: user.is_active,
+            department: user.department,
+            phone: user.phone,
+            position: user.position,
+            student_id: user.student_id,
+            avatar_url: user.avatar_url,
+            is_email_verified: user.is_email_verified
         };
 
         console.log('✅ Authentication successful for:', req.user.email);
@@ -100,7 +112,14 @@ const requireRole = (allowedRoles) => {
         const userRole = req.user.role;
         const roles = Array.isArray(allowedRoles) ? allowedRoles : [allowedRoles];
 
-        if (!roles.includes(userRole)) {
+        // Normalize role values to match database ENUM (handle spaces and underscores)
+        const normalizedUserRole = userRole ? userRole.toLowerCase().replace(/ /g, '_') : '';
+        const normalizedRoles = roles.map(r => r.toLowerCase().replace(/ /g, '_'));
+
+        // Check if user's role matches any of the allowed roles
+        const hasAccess = normalizedRoles.includes(normalizedUserRole);
+
+        if (!hasAccess) {
             console.log('❌ Role access denied. User role:', userRole, 'Required:', roles);
             return res.status(403).json({
                 success: false,

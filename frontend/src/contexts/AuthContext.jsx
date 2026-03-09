@@ -9,46 +9,46 @@ export const AuthProvider = ({ children }) => {
 
     // Initialize auth state from server (check cookie)
     useEffect(() => {
-        console.log('🔄 AuthContext: Initializing authentication...');
-        
         const initializeAuth = async () => {
             try {
-                // First check if user data exists in localStorage (from OAuth)
+                // First, check localStorage for recently set user (from OAuth or login)
                 const storedUser = localStorage.getItem('user');
                 if (storedUser) {
                     try {
-                        const userData = JSON.parse(storedUser);
-                        if (userData && userData.id && userData.email) {
-                            console.log('✅ AuthContext: Found user in localStorage (OAuth):', userData.email);
-                            setUser(userData);
-                            setLoading(false);
-                            return; // Skip session verification if we have valid user data
-                        }
-                    } catch (parseError) {
-                        console.error('Failed to parse stored user data:', parseError);
+                        const parsedUser = JSON.parse(storedUser);
+                        // Optimistically set user from localStorage
+                        setUser(parsedUser);
+                    } catch (e) {
                         localStorage.removeItem('user');
                     }
                 }
 
-                // If no localStorage data, try to verify cookie with server
+                // Small delay to ensure cookie is set by browser after OAuth redirect
+                await new Promise(resolve => setTimeout(resolve, 100));
+
+                // Verify session with server - only log if authenticated
                 const response = await fetch(`${apiConfig.baseURL}/api/auth/verify`, {
                     credentials: 'include' // Include cookies
-                });
+                }).catch(() => null); // Suppress network errors
 
-                if (response.ok) {
+                if (response && response.ok) {
                     const data = await response.json();
                     if (data.success && data.data?.user) {
                         setUser(data.data.user);
-                        // Also store in localStorage for quick access (but not the token)
                         localStorage.setItem('user', JSON.stringify(data.data.user));
-                        console.log('✅ AuthContext: Authenticated user:', data.data.user.email);
+                        console.log('✅ Session verified:', data.data.user.email);
+                    } else {
+                        setUser(null);
+                        localStorage.removeItem('user');
                     }
                 } else {
-                    console.log('🚫 AuthContext: No valid session found');
+                    // Not authenticated - this is normal on login page
+                    setUser(null);
                     localStorage.removeItem('user');
                 }
             } catch (error) {
-                console.error('❌ AuthContext: Initialization error:', error);
+                // Silent fail - expected when not logged in
+                setUser(null);
                 localStorage.removeItem('user');
             } finally {
                 setLoading(false);

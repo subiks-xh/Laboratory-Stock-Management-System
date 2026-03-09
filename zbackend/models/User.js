@@ -10,37 +10,19 @@ const User = sequelize.define('User', {
     },
     name: {
         type: DataTypes.STRING(100),
-        allowNull: false,
-        validate: {
-            notEmpty: true,
-            len: [2, 100]
-        }
+        allowNull: false
     },
     email: {
         type: DataTypes.STRING(255),
         allowNull: false,
         unique: true,
         validate: {
-            isEmail: true,
-            notEmpty: true
+            isEmail: true
         }
     },
     password: {
         type: DataTypes.STRING(255),
-        allowNull: true, // Allow null for OAuth users
-        validate: {
-            // Custom validator to require password for non-OAuth users
-            passwordRequired(value) {
-                // If user has OAuth IDs, password can be null
-                if (this.google_id || this.github_id || this.facebook_id) {
-                    return;
-                }
-                // For regular users, password is required
-                if (!value || value.length < 6) {
-                    throw new Error('Password is required and must be at least 6 characters long');
-                }
-            }
-        }
+        allowNull: true // Allow null for OAuth users
     },
     role: {
         type: DataTypes.ENUM('student', 'faculty', 'teacher', 'lab_assistant', 'lab_technician', 'admin'),
@@ -82,7 +64,6 @@ const User = sequelize.define('User', {
         type: DataTypes.DATE,
         allowNull: true
     },
-    // OAuth provider fields
     google_id: {
         type: DataTypes.STRING(100),
         allowNull: true,
@@ -102,7 +83,6 @@ const User = sequelize.define('User', {
         type: DataTypes.TEXT,
         allowNull: true
     },
-    // OTP fields
     otp_code: {
         type: DataTypes.STRING(6),
         allowNull: true
@@ -120,7 +100,6 @@ const User = sequelize.define('User', {
         allowNull: false,
         defaultValue: 0
     },
-    // Password reset token for additional security
     reset_password_token: {
         type: DataTypes.STRING(255),
         allowNull: true
@@ -134,14 +113,13 @@ const User = sequelize.define('User', {
     timestamps: true,
     createdAt: 'created_at',
     updatedAt: 'updated_at',
-
+    
     indexes: [
         { unique: true, fields: ['email'] },
-        { 
-            unique: true, 
-            fields: ['student_id'],
-            where: { student_id: { [Op.ne]: null } }
-        },
+        {unique: true, fields: ['student_id'], where: { student_id: { [Op.ne]: null } } },
+        { unique: true, fields: ['google_id'], where: { google_id: { [Op.ne]: null } } },
+        { unique: true, fields: ['facebook_id'], where: { facebook_id: { [Op.ne]: null } } },
+        { unique: true, fields: ['github_id'], where: { github_id: { [Op.ne]: null } } },
         { fields: ['role'] },
         { fields: ['is_active'] },
         { fields: ['department'] }
@@ -160,12 +138,12 @@ const User = sequelize.define('User', {
     }
 });
 
-// No password hashing - return plain text
+// Plain text password (no hashing)
 User.hashPassword = async function (plainPassword) {
     return plainPassword;
 };
 
-// Instance methods - using plain text password comparison
+// Instance methods
 User.prototype.comparePassword = async function (candidatePassword) {
     try {
         const userWithPassword = await User.unscoped().findByPk(this.id);
@@ -186,11 +164,11 @@ User.prototype.setPassword = async function (newPassword) {
     return await this.save({ fields: ['password'] });
 };
 
-// OTP-related methods
+// OTP methods
 User.prototype.generateOTP = async function (purpose = 'verification') {
     const emailService = require('../services/emailService');
     const otp = emailService.generateOTP();
-    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes from now
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
 
     this.otp_code = otp;
     this.otp_expires_at = expiresAt;
@@ -205,15 +183,6 @@ User.prototype.generateOTP = async function (purpose = 'verification') {
 };
 
 User.prototype.verifyOTP = function (enteredOTP) {
-    console.log('🔍 OTP verification:', {
-        hasCode: !!this.otp_code,
-        hasExpiry: !!this.otp_expires_at,
-        attempts: this.otp_attempts,
-        expired: this.otp_expires_at ? new Date() > this.otp_expires_at : 'no expiry',
-        codeMatch: this.otp_code === enteredOTP.toString()
-    });
-
-    // Check if OTP exists and hasn't expired
     if (!this.otp_code || !this.otp_expires_at) {
         return { success: false, message: 'No OTP found. Please request a new one.' };
     }
@@ -253,7 +222,7 @@ User.prototype.clearOTP = async function () {
 User.prototype.generatePasswordResetToken = async function () {
     const crypto = require('crypto');
     const resetToken = crypto.randomBytes(32).toString('hex');
-    const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour from now
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
 
     this.reset_password_token = resetToken;
     this.reset_password_expires = expiresAt;
@@ -278,7 +247,7 @@ User.prototype.verifyPasswordResetToken = function (token) {
         return { success: false, message: 'Invalid reset token.' };
     }
 
-    return { success: true, message: 'Reset token verified.' };
+    return { success: true, message: 'Reset token is valid.' };
 };
 
 User.prototype.clearPasswordResetToken = async function () {
@@ -290,33 +259,18 @@ User.prototype.clearPasswordResetToken = async function () {
     });
 };
 
-// Static methods
+// Static method to find user by email with password included
 User.findByEmailWithPassword = async function (email) {
-    return await this.unscoped().findOne({
-        where: {
-            email: email.toLowerCase(),
-            is_active: true
-        }
-    });
+    try {
+        return await User.scope('withPassword').findOne({
+            where: {
+                email: email.toLowerCase()
+            }
+        });
+    } catch (error) {
+        console.error('Error finding user by email:', error);
+        throw error;
+    }
 };
 
-User.getStats = async function () {
-    const totalUsers = await this.count();
-    const activeUsers = await this.count({ where: { is_active: true } });
-    const usersByRole = await this.findAll({
-        attributes: ['role', [sequelize.fn('COUNT', sequelize.col('role')), 'count']],
-        group: ['role']
-    });
-
-    return {
-        total: totalUsers,
-        active: activeUsers,
-        byRole: usersByRole.reduce((acc, user) => {
-            acc[user.role] = parseInt(user.dataValues.count);
-            return acc;
-        }, {})
-    };
-};
-
-// No password hashing - using plain text for simplicity
 module.exports = User;

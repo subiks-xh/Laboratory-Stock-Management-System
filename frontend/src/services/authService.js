@@ -1,7 +1,7 @@
 // src/services/authService.js - Enhanced Authentication Service
 import { apiConfig } from '../config/api.js'
 
-const API_BASE_URL = 'http://localhost:5000/api'  // Use direct backend URL for testing
+const API_BASE_URL = '/api'  // Use Vite proxy for proper cookie handling
 
 // Gmail validation - only allow gmail.com addresses
 export const isValidGmail = (email) => {
@@ -195,10 +195,11 @@ export const loginWithOTP = async (email, otp) => {
 // Get Google OAuth URL
 export const getGoogleAuthUrl = async () => {
     try {
-        console.log('🔗 Requesting Google OAuth URL from:', `${API_BASE_URL}/auth/oauth/google`)
+        console.log('🔗 Requesting Google OAuth URL via proxy')
         
-        const response = await fetch(`${API_BASE_URL}/auth/oauth/google`, {
+        const response = await fetch(`/api/auth/oauth/google`, {
             method: 'GET',
+            credentials: 'include',
             headers: {
                 'Content-Type': 'application/json'
             }
@@ -220,8 +221,9 @@ export const getGoogleAuthUrl = async () => {
 // Get GitHub OAuth URL
 export const getGitHubAuthUrl = async () => {
     try {
-        const response = await fetch(`${API_BASE_URL}/auth/oauth/github`, {
+        const response = await fetch(`/api/auth/oauth/github`, {
             method: 'GET',
+            credentials: 'include',
             headers: {
                 'Content-Type': 'application/json'
             }
@@ -240,17 +242,17 @@ export const loginWithGoogle = async () => {
     try {
         console.log('🚀 Initiating Google OAuth login...')
         
-        // Direct redirect to backend OAuth URL to bypass potential frontend issues
-        const backendOAuthUrl = 'http://localhost:5000/api/auth/oauth/google';
+        // Use proxy to ensure cookies are properly handled
+        const oauthUrl = '/api/auth/oauth/google';
         
-        console.log('🔗 Fetching OAuth URL from backend...');
-        const response = await fetch(backendOAuthUrl, {
+        console.log('🔗 Fetching OAuth URL from backend via proxy...');
+        const response = await fetch(oauthUrl, {
             method: 'GET',
+            credentials: 'include',  // Include cookies
             headers: {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json'
-            },
-            mode: 'cors'
+            }
         });
         
         if (!response.ok) {
@@ -265,9 +267,10 @@ export const loginWithGoogle = async () => {
             console.log('✅ Got OAuth URL, redirecting to Google...');
             console.log('📝 Auth URL (truncated):', data.authUrl.substring(0, 100) + '...');
             
-            // Store the current location for redirect after OAuth
-            sessionStorage.setItem('oauthRedirectUrl', window.location.pathname);
+            // Clear any old session data before OAuth
+            localStorage.removeItem('user');
             
+            // Redirect to Google OAuth
             window.location.href = data.authUrl;
         } else {
             console.error('❌ Failed to get OAuth URL:', data);

@@ -249,10 +249,8 @@ function BookingSystem() {
                     console.error('Failed to fetch equipment:', equipmentResponse.status)
                 }
 
-                // Fetch bookings - admins see all, students see only their own
-                const bookingsUrl = user?.role === 'admin' 
-                    ? `${API_BASE_URL}/bookings` 
-                    : `${API_BASE_URL}/bookings?my_bookings=true`
+                // Fetch all bookings - all users can see all bookings
+                const bookingsUrl = `${API_BASE_URL}/bookings`
                 const bookingsResponse = await fetch(bookingsUrl, { credentials: 'include', headers })
                 if (bookingsResponse.ok) {
                     const bookingsData = await bookingsResponse.json()
@@ -381,9 +379,7 @@ function BookingSystem() {
 
             if (response.ok && data.success) {
                 // Refresh bookings list instead of manually adding
-                const bookingsUrl = user?.role === 'admin' 
-                    ? `${API_BASE_URL}/bookings` 
-                    : `${API_BASE_URL}/bookings?my_bookings=true`
+                const bookingsUrl = `${API_BASE_URL}/bookings`
                 
                 const refreshResponse = await fetch(bookingsUrl, {
                     credentials: 'include',
@@ -660,17 +656,19 @@ function BookingSystem() {
                                     })}
                                 </div>
 
-                                {/* New Booking Button */}
-                                <button
-                                    onClick={() => setShowBookingForm(true)}
-                                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
-                                    disabled={!isAuthenticated}
-                                >
-                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path>
-                                    </svg>
-                                    <span>New Booking</span>
-                                </button>
+                                {/* New Booking Button - hidden for students */}
+                                {user?.role !== 'student' && (
+                                    <button
+                                        onClick={() => setShowBookingForm(true)}
+                                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
+                                        disabled={!isAuthenticated}
+                                    >
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path>
+                                        </svg>
+                                        <span>New Booking</span>
+                                    </button>
+                                )}
 
                                 {/* Notifications */}
                                 <button
@@ -1000,7 +998,7 @@ function BookingSystem() {
                                 <p className="text-gray-600 mb-6">
                                     {searchQuery ? 'Try adjusting your search criteria.' : 'Get started by creating your first booking.'}
                                 </p>
-                                {!searchQuery && (
+                                {!searchQuery && user?.role !== 'student' && (
                                     <button
                                         onClick={() => setShowBookingForm(true)}
                                         className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
@@ -1055,7 +1053,7 @@ function BookingSystem() {
                                                     </span>
                                                 </td>
                                                 <td className="px-6 py-4 text-sm">
-                                                    {booking.status !== 'cancelled' && (
+                                                    {booking.status !== 'cancelled' && user?.role !== 'student' && (
                                                         <button
                                                             className="text-red-600 hover:text-red-800 hover:underline transition-colors"
                                                             onClick={() => handleCancelBooking(booking.id)}

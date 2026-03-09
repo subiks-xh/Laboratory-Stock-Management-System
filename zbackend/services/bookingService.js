@@ -24,10 +24,10 @@ class BookingService {
 
         const whereClause = {};
 
-        // Role-based filtering
-        if (userRole === 'student' || my_bookings === 'true') {
+        // Role-based filtering - only filter by user when explicitly requested
+        if (my_bookings === 'true') {
             whereClause.user_id = userId;
-        } else if (user_id && (userRole === 'admin' || userRole === 'teacher')) {
+        } else if (user_id) {
             whereClause.user_id = user_id;
         }
 
@@ -316,7 +316,7 @@ class BookingService {
      * Get booking statistics
      */
     async getStats(userId, userRole) {
-        const whereClause = userRole === 'student' ? { user_id: userId } : {};
+        const whereClause = {}; // All users see total stats
 
         const [total, pending, confirmed, completed, cancelled] = await Promise.all([
             Booking.count({ where: whereClause }),
