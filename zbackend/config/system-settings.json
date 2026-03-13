@@ -1,0 +1,68 @@
+{
+  "lab_name": "NEC Lab",
+  "organization": "NEC",
+  "address": "",
+  "phone": "",
+  "email": "",
+  "website": "",
+  "operating_hours": {
+    "monday": {
+      "open": "08:00",
+      "close": "18:00",
+      "closed": false
+    },
+    "tuesday": {
+      "open": "08:00",
+      "close": "18:00",
+      "closed": false
+    },
+    "wednesday": {
+      "open": "08:00",
+      "close": "18:00",
+      "closed": false
+    },
+    "thursday": {
+      "open": "08:00",
+      "close": "18:00",
+      "closed": false
+    },
+    "friday": {
+      "open": "08:00",
+      "close": "18:00",
+      "closed": false
+    },
+    "saturday": {
+      "open": "09:00",
+      "close": "15:00",
+      "closed": false
+    },
+    "sunday": {
+      "open": "09:00",
+      "close": "15:00",
+      "closed": true
+    }
+  },
+  "booking_rules": {
+    "max_booking_duration": 8,
+    "advance_booking_days": 30,
+    "cancellation_hours": 24,
+    "auto_approve_bookings": false,
+    "require_approval_for_equipment": true
+  },
+  "notification_settings": {
+    "email_notifications": true,
+    "booking_confirmations": true,
+    "maintenance_reminders": true,
+    "incident_alerts": true,
+    "daily_digest": false
+  },
+  "maintenance_settings": {
+    "default_maintenance_interval": 30,
+    "require_maintenance_approval": true,
+    "auto_schedule_maintenance": false,
+    "maintenance_buffer_days": 3
+  },
+  "security_settings": {
+    "session_timeout": 45
+  }
+}
